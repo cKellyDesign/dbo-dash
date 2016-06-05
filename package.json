@@ -1,0 +1,17 @@
+{
+  "name": "dbo-dash",
+  "version": "1.0.0",
+  "description": "Custom dashboard to pull ONA.io data for a dashboard of more comprehensive data visualizations.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ckellydesign",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.15.1",
+    "express": "^4.13.4",
+    "request": "^2.72.0",
+    "underscore": "^1.8.3"
+  }
+}

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.arc text {
+  font: 10px sans-serif;
+  text-anchor: middle;
+  text-transform: capitalize;
+}
+
+.arc path {
+  stroke: #fff;
+}
+
+</style>
+<body>
+<script src="./js/d3.v3.min.js"></script>
+<script src="./js/jquery-1.12.4.min.js"></script>
+<script src="./js/underscore-min.js"></script>
+<script>
+
+	var formData = {};
+
+  // todo: move this to server side route handler + handlebars
+	$.ajax({
+		type: 'GET',
+    url:'http://localhost:9000/form/126081', // todo: make this dynamic
+		jsonp: true,
+    dataType: 'jsonp',
+    complete: function (res) {
+      var responseText = res && res.responseText && JSON.parse(res.responseText);
+      var data = responseText.body && JSON.parse(responseText.body);
+
+      handleData(data);
+    }
+  });
+
+  function handleData (data) {
+    // console.log(data);
+
+    var parsedData = _.map(data, function (sub){
+      var scrub = {};
+      for (var prop in sub) {
+        if ( prop.indexOf('/') === -1 ) {
+          scrub[prop] = sub[prop]
+        } else {
+          var propArr = prop.split('/'),
+              newProp = propArr[propArr.length - 1];
+          scrub[newProp] = sub[prop];
+        }
+        
+        if ( typeof scrub[newProp || prop] === "string" ) {
+          scrub[newProp || prop] = scrub[newProp || prop].toLowerCase();
+          scrub[newProp || prop] = scrub[newProp || prop].replace(/_/g, ' ');
+        }
+        
+      }
+      return scrub;
+    });
+    console.log(parsedData);
+    formData = parsedData;
+    new pieChart("child_gender");
+    new pieChart("ou_centre_name");
+    new pieChart("ou_class_admitted");
+  }
+
+  function pieChart (prop) {
+
+    var counts = {};
+    var data = [];
+    _.each(formData, function(thisData){
+      if ( !counts[thisData[prop]] ) {
+        counts[thisData[prop]] = 1;
+      } else {
+        counts[thisData[prop]]++;
+      }
+    });
+
+    // debugger;
+    for (var prop in counts) {
+      data.push({
+        label: prop,
+        value: counts[prop]
+      });
+    }
+    console.log(data);
+
+    var width = (window.innerWidth - 50) / 2,
+        height = 500,
+        radius = Math.min(width, height) / 2;
+
+    // var color = d3.scale.ordinal()
+    //     .range(["#98abc5", "#8a89a6"]);
+    var color = d3.scale.category20c();
+
+    var arc = d3.svg.arc()
+        .outerRadius(radius - 10)
+        .innerRadius(0);
+
+    var labelArc = d3.svg.arc()
+        .outerRadius(radius - 80)
+        .innerRadius(radius - 80);
+
+    var pie = d3.layout.pie()
+        .sort(null)
+        .value(function (d,i) { 
+          // debugger;
+          return d.value; 
+        });
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+    var g = svg.selectAll(".arc")
+        .data(pie(data))
+        .enter().append("g")
+        .attr("class", "arc");
+
+    g.append("path")
+        .attr("d", arc)
+        .style("fill", function (d,i) { return color(i); });
+
+    g.append("text")
+        .attr("transform", function (d) { return "translate(" + labelArc.centroid(d) + ")"; })
+        .attr("dy", ".35em")
+        .text(function (d,i) { 
+          // debugger;
+          return d.data.label; 
+        });
+
+ 
+  }
+
+</script>
+<h1>hi there</h1>
+</body>
