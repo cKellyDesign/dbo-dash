@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
-
+.bar { fill: green; }
 .arc text {
   font: 10px sans-serif;
   text-anchor: middle;
@@ -10,6 +10,23 @@
 
 .arc path {
   stroke: #fff;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
 }
 
 </style>
@@ -24,7 +41,7 @@
   // todo: move this to server side route handler + handlebars
 	$.ajax({
 		type: 'GET',
-    url:'http://localhost:9000/form/126081', // todo: make this dynamic
+    url:'http://localhost:9000/form/127417', // todo: make this dynamic
 		jsonp: true,
     dataType: 'jsonp',
     complete: function (res) {
@@ -59,9 +76,272 @@
     });
     console.log(parsedData);
     formData = parsedData;
+    // histogram();
+    barChart("centre_name");
     new pieChart("child_gender");
-    new pieChart("ou_centre_name");
-    new pieChart("ou_class_admitted");
+    new pieChart("centre_name");
+    new pieChart("class_admitted");
+  }
+
+  function barChart(param, range, paramMatch) {
+    
+    var barData = parseBarData(arguments);
+    console.log("barData - ", barData);
+
+    var height = 200,
+        width = 500;
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    var max_n = 0;
+    for (var d in barData) {
+      max_n = Math.max(barData[d].count, max_n);
+    }
+
+    var dx = width / barData.length,
+        dy = height / max_n;
+
+    var bars = svg.selectAll('.bar')
+        .data(barData)
+        .enter()
+        .append('rect')
+        .attr('class', function (d, i) { return 'bar ' + d.label; })
+        .attr('y', function (d, i) { return 0; })
+        .attr('x', function (d, i) { return dx * i; })
+        .attr('width', function (d, i) { return dx - 10; })
+        .attr('height', function (d, i) { return dy * d.count; });
+
+    var text = svg.selectAll('text')
+        .data(barData)
+        .enter()
+        .append('text')
+        .attr('class', function (d, i) { return 'label ' + d.label })
+        .attr('y', 5)
+        .attr('x', function (d, i) { return dx * i + 15; })
+        .text(function (d) { return d.label + ' (' + d.count + ')'; })
+        .attr('font-size', '15px')
+        .attr('font-weight', 'bold');
+
+  }
+
+  window.parseBarData = function (args) {
+    var param = args[0] || "",
+        range = args[1] || {},
+        paramMatch = args[2] || "";
+
+    var counts = {};
+    var data = [];
+    _.each(formData, function(thisData){
+      if ( !counts[thisData[param]] ) {
+        counts[thisData[param]] = {  "count" : 1 };
+      } else {
+        counts[thisData[param]].count++;
+      }
+    });
+
+    for ( var prop in counts ) {
+      data.push({ "label" : prop, "count" : counts[prop].count });
+    }
+
+    return data;
+  }
+
+  function histogram (param, range, paramMatch) {
+    range = range || {};
+    param = param || "";
+    paramMatch = paramMatch || null;
+    var histData = parseHistorgramData(param, range);
+
+    // console.log("histData - ", histData);
+
+    var margin = {top: 20, right: 80, bottom: 30, left: 50},
+        width = window.innerWidth - margin.left - margin.right,
+        height = window.innerHeight - margin.top - margin.bottom;
+
+    var parseDate = d3.time.format("%Y-%m-%d").parse;
+
+    var x = d3.time.scale()
+        .range([0, width]);
+
+    var y = d3.scale.linear()
+        .domain([0,100])
+        .range([height, 0]);
+
+    var color = d3.scale.category10();
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left");
+
+    var line = d3.svg.line()
+        .interpolate("basis")
+        .x(function (d) { 
+          debugger;
+          return x(d.date); 
+        })
+        .y(function (d) { 
+          debugger;
+          return y(d.count); 
+        });
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var theseKeys = [];
+    for (var prop in histData[0]) {
+      if (prop !== "date") theseKeys.push(prop);
+    }
+      
+    color.domain(d3.keys(theseKeys));
+
+    histData.forEach(function(d) {
+      // debugger;
+      d.date = parseDate(d.date);
+    });   
+
+    var classes = color.domain().map(function (name) {
+      // debugger;
+      return {
+        name: theseKeys[name],
+        // name: name,
+        values: histData.map(function (d) { 
+          return d;
+          // debugger;
+          // return {
+          //   date: d.date,
+          //   count: +d[name]
+          // };
+        }) 
+      };
+    });
+
+    x.domain(d3.extent(histData, function (d) { return d.date; }));
+
+    y.domain([
+      d3.min(classes, function (c) { return d3.min(c.values, function (v) { return v.count; }); }),
+      d3.max(classes, function (c) { return d3.max(c.values, function (v) { return v.count; }); })
+    ]);
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0, " + height + ")")
+        .call(xAxis);
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+      .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("Student Count");
+
+    var _class = svg.selectAll("clas5")
+        .data(classes)
+      .enter().append("g")
+        .attr("class", "clas5");
+
+    _class.append("path")
+        .attr("class", "line")
+        .attr("d", function (d,i) { 
+          debugger;
+          return line(d.values[i][d.name]); 
+        })
+        .style("stroke", function (d) { return color(d.name); });
+
+    _class.append("text")
+        .datum(function (d) { return { name: d.name, value: d.values[d.values.length - 1]}; })
+        .attr("transform", function (d, i) { 
+          // debugger;
+          var xVal = d.value.date,
+              // yVal = d.value[d.name];
+              yVal = i * 10;
+          // return "translate(" + x(xVal) + ", " + y(yVal) + ")";
+          return "translate(" + x(xVal) + ", " + yVal + ")";  
+        })
+        .attr("x", 3)
+        .attr("dy", ".35em")
+        .text(function (d) { return d.name; });
+  }
+
+  window.parseHistorgramData = function  (param, range, paramMatch) {
+    // if no range is defined, set range to start one year ago and end today
+    if ( !range.start ) {
+      var time = (new Date).getTime()
+      range = {
+        start : new Date(time - (7 * 24 * 60 * 60 * 1000)),
+        end : new Date(time)
+      };
+    }
+
+    var counts = {};
+    var data = [];
+    var oneDay = 24 * 60 * 60 * 1000;
+    var t = 0;
+    for (i = range.start.getTime(); i < range.end.getTime(); i = i + oneDay) {
+      var thisDate = new Date(i);
+      // console.log(date);
+
+      data.push({
+        date : thisDate.getFullYear() + '-' + thisDate.getMonth() + '-' + thisDate.getDate(),
+        // value : 0
+        baby_care: 0,
+        baby_class: 0,
+        nursery: 0,
+        "pre-unit": 0
+      });
+
+      _.each(formData, function(thisData){
+        var addDate = thisData.admission_date ? new Date(thisData.admission_date).getTime() : null,
+            babyCareGrad = thisData.baby_care_graduation_date ? new Date(thisData.baby_care_graduation_date).getTime() : null,
+            babyClassGrad = thisData.baby_class_graduation_date ? new Date(thisData.baby_class_graduation_date).getTime() : null,
+            nurseryGrad = thisData.nursery_graduation_date ? new Date(thisData.nursery_graduation_date).getTime() : null,
+            preunitGrad = thisData.preunit_graduation_date ? new Date(thisData.preunit_graduation_date).getTime() : null,
+            dropDate = thisData.drop_out_date ? new Date(thisData.drop_out_date).getTime() : null;
+
+        if (addDate && addDate > i ) { // if enrolled after thisDate, add count
+          // data[t].value++;
+        
+          if ( (dropDate && dropDate < i ) || (preunitGrad && preunitGrad < i) ) { // if dropped out or graduated pre-unit before thisDate, drop count
+            // data[t].value--;
+          } else {
+            if (!babyCareGrad && !babyClassGrad && !nurseryGrad && !preunitGrad) { // if no graduatoins, add count to current enrollment
+              data[t][thisData.class_admitted]++;
+
+            } else if ( babyCareGrad && babyCareGrad > i ) { // if babyCareGrad date exists and is after thisDate, add to babyCare Count
+              data[t].baby_care++;
+
+            } else if ( babyClassGrad && babyClassGrad > i ) {
+              data[t].baby_class++;
+
+            } else if ( nurseryGrad && nurseryGrad > i ) {
+              data[t].nursery++;
+
+            } else if ( preunitGrad && preunitGrad > i ) {
+              data[t]["pre-unit"]++;
+            }
+
+          }
+          debugger;
+        }
+        // debugger;
+      });
+      
+      t++;
+    }
+    
+    // console.log(data);
+    return data;
   }
 
   function pieChart (prop) {
