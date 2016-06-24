@@ -65,30 +65,35 @@ app.get('/form/:formID', function(req, res){
 	});
 });
 
-app.use('/formHook', function (req, res) {
+app.use('/formHook', bodyParser.urlencoded({ extended: false }), function (req, res) {
 	var transporter = nodemailer.createTransport({
-		service: 'Gmail',
+		service: 'gmail',
 		auth: {
-			user: 'conor.kidogo@gmail.com',
-			pass: 'welovebabies'
+			xoauth2: xoauth2.createXOAuth2Generator({
+				user: process.env.USER,
+				clientId: process.env.CLIENTID,
+				clientSecret: process.env.CLIENTSECRET,
+				refreshToken: process.env.REFRESHTOKEN,
+				accessToken: process.env.ACCESSTOKEN
+			})
 		}
 	});
 
-	var text = req.body,
+	var text = JSON.stringify(req.body),
 			mailOptions = {
 				from: 'conor.kidogo@gmail.com',
-				to: 'ckellydesign.net@gmail.com',
-				subject: 'test email!!',
+				to: 'conor.kidogo@gmail.com',
+				subject: 'Web Hook Test',
 				text: text
 	};
 
 	transporter.sendMail(mailOptions, function (err, info) {
 		if (err) {
 			console.log('sendMail Err -', err);
-			res.json({ yo: 'error' });
+			// res.json({ yo: 'error' });
 		} else {
 			console.log('mail sent -', info.response);
-			res.json({ yo: info.response });
+			// res.json({ yo: info.response });
 		}
 	});
 
