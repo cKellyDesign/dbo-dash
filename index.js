@@ -79,12 +79,12 @@ app.use('/formHook', bodyParser.json(), function (req, res) {
 		}
 	});
 
-	var text = parseFormSubmission(req.body),
+	var htmlStr = parseFormSubmission(req.body),
 			mailOptions = {
 				from: 'conor.kidogo@gmail.com',
 				to: 'conor.kidogo@gmail.com',
-				subject: req.body._xform_id_string.replace(/_/g, " ") + ' submission',
-				text: text
+				subject: '[Form Submission] ' + req.body._xform_id_string.replace(/_/g, " "),
+				html: htmlStr
 	};
 
 	transporter.sendMail(mailOptions, function (err, info) {
@@ -113,12 +113,15 @@ function allowCrossDomain (req, res, next) {
 
 function parseFormSubmission (data) {
 	var formName = data._xform_id_string.replace(/_/g, " ");
-	var str = formName + ' submission: \n';
+	var str = '<h2 style="text-transform:capitalize;">' + formName + ' submission </h2><br><ul style="list-style:none;">';
+
 	for (var prop in data) {
-		if (prop[0] !== "_") {
-			str = str + '\n' + prop + " : " + data[prop] ;
+		if (prop[0] !== "_" && prop !== "meta/instanceID" && prop !== "formhub/uuid") {
+			str = str + '<li><span style="font-weight:bold">' + prop + "</span> : " + data[prop] + "</li>";
 		}
 	}
+
+	str = str + '</ul>';
 	return str;
 }
 
