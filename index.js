@@ -83,7 +83,7 @@ app.use('/formHook', bodyParser.json(), function (req, res) {
 			mailOptions = {
 				from: 'conor.kidogo@gmail.com',
 				to: 'conor.kidogo@gmail.com',
-				subject: 'Web Hook Test',
+				subject: req.body._xform_id_string.replace(/_/g, " ") + ' submission',
 				text: text
 	};
 
