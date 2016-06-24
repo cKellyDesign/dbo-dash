@@ -79,7 +79,7 @@ app.use('/formHook', bodyParser.json(), function (req, res) {
 		}
 	});
 
-	var text = JSON.stringify(req.body),
+	var text = parseFormSubmission(req.body),
 			mailOptions = {
 				from: 'conor.kidogo@gmail.com',
 				to: 'conor.kidogo@gmail.com',
@@ -111,6 +111,16 @@ function allowCrossDomain (req, res, next) {
     next();
 }
 
+function parseFormSubmission (data) {
+	var formName = data._xform_id_string.replace(/_/g, " ");
+	var str = formName + ' submission: \n';
+	for (var prop in data) {
+		if (prop[0] !== "_") {
+			str = str + '\n' + prop + " : " + data[prop] ;
+		}
+	}
+	return str;
+}
 
 app.listen(process.env.PORT || 9000, function(){
 	console.log('App running on port 9000');
