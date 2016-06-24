@@ -46,13 +46,13 @@ app.use('/email-test', bodyParser.urlencoded({ extended: false }), function (req
 				text: text
 	};
 
-	// transporter.sendMail(mailOptions, function (err, info) {
-	// 	if (err) {
-	// 		console.log('sendMail Err -', err);
-	// 	} else {
-	// 		console.log('mail sent -', info.response);
-	// 	}
-	// });
+	transporter.sendMail(mailOptions, function (err, info) {
+		if (err) {
+			console.log('sendMail Err -', err);
+		} else {
+			console.log('mail sent -', info.response);
+		}
+	});
 
 
 	res.sendStatus(200);
