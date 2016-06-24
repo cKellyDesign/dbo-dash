@@ -65,7 +65,7 @@ app.get('/form/:formID', function(req, res){
 	});
 });
 
-app.use('/formHook', bodyParser.urlencoded({ extended: false }), function (req, res) {
+app.use('/formHook', bodyParser.json(), function (req, res) {
 	var transporter = nodemailer.createTransport({
 		service: 'gmail',
 		auth: {
