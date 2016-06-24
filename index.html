@@ -39,18 +39,18 @@
 	var formData = {};
 
   // todo: move this to server side route handler + handlebars
-	$.ajax({
-		type: 'GET',
-    url:'http://localhost:9000/form/127417', // todo: make this dynamic
-		jsonp: true,
-    dataType: 'jsonp',
-    complete: function (res) {
-      var responseText = res && res.responseText && JSON.parse(res.responseText);
-      var data = responseText.body && JSON.parse(responseText.body);
+	// $.ajax({
+	// 	type: 'GET',
+ //    url:'http://localhost:9000/form/127417', // todo: make this dynamic
+	// 	jsonp: true,
+ //    dataType: 'jsonp',
+ //    complete: function (res) {
+ //      var responseText = res && res.responseText && JSON.parse(res.responseText);
+ //      var data = responseText.body && JSON.parse(responseText.body);
 
-      handleData(data);
-    }
-  });
+ //      handleData(data);
+ //    }
+ //  });
 
   function handleData (data) {
     // console.log(data);
@@ -415,5 +415,31 @@
   }
 
 </script>
+
 <h1>hi there</h1>
+
+<form id="testForm">
+<input id="testEmail" type="text" name="email">
+<br>
+<textarea id="testTextarea" name="message"></textarea>
+<br>
+<input id="testSubmit" type="submit" value="Submit">
+</form>
+
+<script>
+    $('#testSubmit').on('click', function (e) {
+      e.preventDefault();
+      var body = {
+        'email' : $('#testEmail').val(),
+        'message' : $('#testTextarea').val()
+      };
+
+      $.ajax({
+        type: 'POST',
+        url: '/email-test',
+        data : body,
+        success: function () { console.log('SUCCESS POST'); }
+      });
+    });
+</script>
 </body>

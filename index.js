@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var request = require('request');
 var nodemailer = require('nodemailer');
+var xoauth2 = require('xoauth2');
 // var csv = require('csv-stream');
 var path = require('path');
 // var multer = require('multer');
@@ -20,6 +21,43 @@ app.get('/', function (req, res){
 	res.sendFile(path.join(__dirname, './index.html'));
 });
 
+app.use('/email-test', bodyParser.urlencoded({ extended: false }), function (req, res) {
+	console.log('body :', req.body);
+
+	var transporter = nodemailer.createTransport({
+		service: 'gmail',
+		auth: {
+			xoauth2: xoauth2.createXOAuth2Generator({
+				user: process.env.USER,
+				clientId: process.env.CLIENTID,
+				clientSecret: process.env.CLIENTSECRET,
+				refreshToken: process.env.REFRESHTOKEN,
+				accessToken: process.env.ACCESSTOKEN
+			})
+		}
+	});
+
+	// var text = JSON.stringify(req.body),
+	var text = req.body.message,
+			mailOptions = {
+				from: 'conor.kidogo@gmail.com',
+				to: req.body.email,
+				subject: 'test email!!',
+				text: text
+	};
+
+	// transporter.sendMail(mailOptions, function (err, info) {
+	// 	if (err) {
+	// 		console.log('sendMail Err -', err);
+	// 	} else {
+	// 		console.log('mail sent -', info.response);
+	// 	}
+	// });
+
+
+	res.sendStatus(200);
+});
+
 app.get('/form/:formID', function(req, res){
 	var formID = req.params.formID;
 	request('https://api.ona.io/api/v1/data/' + formID, function (error, response, body){
@@ -36,7 +74,7 @@ app.use('/formHook', function (req, res) {
 		}
 	});
 
-	var text = res.body,
+	var text = req.body,
 			mailOptions = {
 				from: 'conor.kidogo@gmail.com',
 				to: 'ckellydesign.net@gmail.com',
