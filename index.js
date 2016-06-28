@@ -84,7 +84,7 @@ app.use('/formHook', bodyParser.json(), function (req, res) {
 			mailOptions = {
 				from: 'conor.kidogo@gmail.com',
 				to: toStr,
-				subject: '[Form Submission] ' + toTitleCase(req.body._xform_id_string.replace(/_/g, " ")),
+				subject: '[Form Submission] ' + req.body._xform_id_string.replace(/_/g, ' ').toTitleCase(),
 				html: htmlStr
 	};
 
@@ -113,12 +113,16 @@ function allowCrossDomain (req, res, next) {
 }
 
 function parseFormSubmission (data) {
-	var formName = toTitleCase(data._xform_id_string.replace(/_/g, " "));
+	var formName = data._xform_id_string.replace(/_/g, " ").toTitleCase();
 	var str = '<h2 style="text-transform:capitalize;">' + formName + ' submission </h2><br><ul style="list-style:none;">';
+	var thisProp = '';
 
 	for (var prop in data) {
 		if (prop[0] !== "_" && prop !== "meta/instanceID" && prop !== "formhub/uuid") {
-			str = str + '<li><p><span style="font-weight:bold">' + prop + "</span><br>" + data[prop] + "<br></p></li>";
+
+			thisProp = prop.replace(/\//g, ' / ').replace(/_/, ' ').toTitleCase();
+
+			str = str + '<li><p><span style="font-weight:bold">' + thisProp + "</span><br>" + data[prop] + "<br></p></li>";
 		}
 	}
 
@@ -126,7 +130,7 @@ function parseFormSubmission (data) {
 	return str;
 }
 
-function toTitleCase (str) {
+String.prototype.toTitleCase = function (str) {
 	return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 }
 
