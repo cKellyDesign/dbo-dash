@@ -117,7 +117,7 @@ function parseFormSubmission (data) {
 
 	for (var prop in data) {
 		if (prop[0] !== "_" && prop !== "meta/instanceID" && prop !== "formhub/uuid") {
-			str = str + '<li><span style="font-weight:bold">' + prop + "</span> : " + data[prop] + "</li>";
+			str = str + '<li><p><span style="font-weight:bold">' + prop + "</span><br>" + data[prop] + "<br></p></li>";
 		}
 	}
 
