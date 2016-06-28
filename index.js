@@ -78,12 +78,13 @@ app.use('/formHook', bodyParser.json(), function (req, res) {
 			})
 		}
 	});
-
+	var toStr = 'conor.kidogo@gmail.com' + (req.body._xform_id_string === 'pilot_feedback' ? '' : ',sheela@kidogo.co');
+	
 	var htmlStr = parseFormSubmission(req.body),
 			mailOptions = {
 				from: 'conor.kidogo@gmail.com',
-				to: 'conor.kidogo@gmail.com',
-				subject: '[Form Submission] ' + req.body._xform_id_string.replace(/_/g, " "),
+				to: toStr,
+				subject: '[Form Submission] ' + toTitleCase(req.body._xform_id_string.replace(/_/g, " ")),
 				html: htmlStr
 	};
 
@@ -112,7 +113,7 @@ function allowCrossDomain (req, res, next) {
 }
 
 function parseFormSubmission (data) {
-	var formName = data._xform_id_string.replace(/_/g, " ");
+	var formName = toTitleCase(data._xform_id_string.replace(/_/g, " "));
 	var str = '<h2 style="text-transform:capitalize;">' + formName + ' submission </h2><br><ul style="list-style:none;">';
 
 	for (var prop in data) {
@@ -123,6 +124,10 @@ function parseFormSubmission (data) {
 
 	str = str + '</ul>';
 	return str;
+}
+
+function toTitleCase (str) {
+	return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 }
 
 app.listen(process.env.PORT || 9000, function(){
