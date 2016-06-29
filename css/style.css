@@ -1,0 +1,31 @@
+.bar { fill: green; }
+.arc text {
+  font: 10px sans-serif;
+  text-anchor: middle;
+  text-transform: capitalize;
+}
+
+.arc path {
+  stroke: #fff;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.loading {
+  max-width: 50px;
+}
