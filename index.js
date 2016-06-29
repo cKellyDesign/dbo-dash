@@ -41,7 +41,8 @@ app.get('/listforms', function (req, res) {
 
 		var htmlStr = '<ul id="form-list">';
 		for (var i=0; i<project.forms.length; i++) {
-			htmlStr += '<li><a href="/form/' + project.forms[i].formid + '">' + project.forms[i].name + '</a></li>';
+			htmlStr += '<li><a class="load-submissions" href="/form/' + project.forms[i].formid + '">' + project.forms[i].name + '</a>' +
+								 ' <a href="https://ona.io/kidogo_early_years/16634/' + project.forms[i].formid + '#/saved-charts" target="_blank"><small>(dashboard)</small></li>';
 		}
 		htmlStr += '</ul>';
 

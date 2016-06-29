@@ -422,7 +422,7 @@
 
     function formsListHandler (data) {
       $('#formsList').html(data);
-      $('#formsList a').on('click', handleFormLinkClick);
+      $('#formsList a.load-submissions').on('click', handleFormLinkClick);
     }
 
     function handleFormLinkClick (e) {
