@@ -166,8 +166,10 @@ function allowCrossDomain (req, res, next) {
     next();
 }
 
+// for emails
 function parseFormSubmission (data) {
 	var formName = data._xform_id_string.replace(/_/g, " ").toTitleCase();
+	var formAttachments = data["_attachments"] ? data["_attachments"] : null;
 	var str = '<h2 style="text-transform:capitalize;">' + formName + ' submission </h2><br><ul style="list-style:none;">';
 	var thisProp = '';
 
@@ -175,8 +177,21 @@ function parseFormSubmission (data) {
 		if (prop[0] !== "_" && prop !== "meta/instanceID" && prop !== "formhub/uuid") {
 
 			thisProp = prop.replace(/\//g, ' / ').replace(/_/g, ' ').toTitleCase();
+			
+			thisText = data[prop];
+			if ( formAttachments && formAttachments.length && thisText.indexOf('.jpg') !== -1 ) {
+				// build image tag
+				var thisAttachment = _.find(formAttachments, function (attachment) {
+					return attachment["filename"] && attachment["filename"].indexOf(data[prop]) !== -1;
+				});
+				if ( thisAttachment ) {
+					var filebase = 'http://api.ona.io';
+					thisText = '<a href="' + filebase + thisAttachment.download_url + '" target="_blank">' + 
+										 '<img src="' + filebase + thisAttachment.small_download_url + '"></a>';
+				}
+			}
 
-			str = str + '<li><p><span style="font-weight:bold">' + thisProp + "</span><br>" + data[prop] + "<br></p></li>";
+			str = str + '<li><p><span style="font-weight:bold">' + thisProp + "</span><br>" + thisText + "<br></p></li>";
 		}
 	}
 
@@ -184,14 +199,17 @@ function parseFormSubmission (data) {
 	return str;
 }
 
+// For dashboard
 function parseFormData (dataStr, formID) {
 	// var formName = data._xform_id_string.replace(/_/g, " ").toTitleCase();
 	var formData = JSON.parse(dataStr);
+	
 	var str = '<ul style="list-style:none;">';
 	var thisProp = '';
 	var data = null;
 	for (var i = 0; i < formData.length; i++) {
 		data = formData[i];
+		var formAttachments = data["_attachments"] ? data["_attachments"] : null;
 		str = str + '<h2>' + data._submitted_by + ' <small>(' + data._submission_time + ') - ' + 
 					'<a href="/edit-submission/' + formID + '/' + data._id + '" target="_blank">edit</a></small></h2>';
 		for (var prop in data) {
@@ -199,7 +217,20 @@ function parseFormData (dataStr, formID) {
 
 				thisProp = prop.replace(/\//g, ' / ').replace(/_/g, ' ').toTitleCase();
 
-				str = str + '<li style="margin-left:25px;"><p><span style="font-weight:bold">' + thisProp + "</span><br>" + data[prop] + "<br></p></li>";
+				var thisText = data[prop];
+				if ( formAttachments && formAttachments.length && thisText.indexOf('.jpg') !== -1 ) {
+					// build image tag
+					var thisAttachment = _.find(formAttachments, function (attachment) {
+						return attachment["filename"] && attachment["filename"].indexOf(data[prop]) !== -1;
+					});
+					if ( thisAttachment ) {
+						var filebase = 'http://api.ona.io';
+						thisText = '<a href="' + filebase + thisAttachment.download_url + '" target="_blank">' + 
+											 '<img src="' + filebase + thisAttachment.small_download_url + '"></a>';
+					}
+				}
+
+				str = str + '<li style="margin-left:25px;"><p><span style="font-weight:bold">' + thisProp + "</span><br>" + thisText + "<br></p></li>";
 			}
 		}
 	}
